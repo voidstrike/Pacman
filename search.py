@@ -99,6 +99,17 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+def constructActionList(parent_map, final_state):
+    action_list = []  # initialize the action list
+    while True:
+        if parent_map[final_state] is not None:
+            print parent_map[final_state]
+            action_list.append(parent_map[final_state][1])  # Append action in reverse order
+            final_state = parent_map[final_state][0]  # Update state according to its parent
+        else:
+            break
+    return list(reversed(action_list))
+
 def genericSearch(problem, fringe, after_check_flag, heuristic=nullHeuristic):
     # Variables initialization
     parent_map = {}  # HashMap stores the parent information
@@ -119,6 +130,7 @@ def genericSearch(problem, fringe, after_check_flag, heuristic=nullHeuristic):
     if after_check_flag:  # The algorithm is required to perform goal test during tree expansion
         while not fringe.isEmpty():
             current_state, cost_so_far = fringe.pop()
+            visited_state[current_state] = True
             if problem.isGoalState(current_state):
                 final_state = current_state
                 flag = True
@@ -129,7 +141,6 @@ def genericSearch(problem, fringe, after_check_flag, heuristic=nullHeuristic):
                 if visited_state.has_key(state):
                     continue
                 else:
-                    visited_state[state] = True
                     parent_map[state] = (current_state, direction)
                     fringe.push((state, cost + cost_so_far), cost + cost_so_far + heuristic(state, problem))
 
@@ -142,8 +153,8 @@ def genericSearch(problem, fringe, after_check_flag, heuristic=nullHeuristic):
                 if visited_state.has_key(state):
                     continue
                 else:
-                    visited_state[state] = True
                     parent_map[state] = (current_state, direction)
+                    visited_state[state] = True
                     if problem.isGoalState(state):
                         final_state = state
                         flag = True
@@ -154,36 +165,133 @@ def genericSearch(problem, fringe, after_check_flag, heuristic=nullHeuristic):
                 break
 
     # Action list construction
-    action_list = []  # initialize the action list
-    if flag:
-        while True:
-            if parent_map[final_state] is not None:
-                action_list.append(parent_map[final_state][1])  # Append action in reverse order
-                final_state = parent_map[final_state][0]  # Update state according to its parent
-            else:
-                break
-
-    return list(reversed(action_list))
+    return constructActionList(parent_map, final_state)
 
 def depthFirstSearch(problem):
     """ Search the deepest nodes in the search tree first. """
-    fringe = util.Stack()  # Stack as fringe in DFS
-    return genericSearch(problem, WrappedFringe(fringe), False)
+    # # Variables initialization
+    # fringe = WrappedFringe(util.Stack())
+    # parent_map = {}  # HashMap stores the parent information
+    # visited_state = {}  # HashMap stores the visited position
+    # start_state = problem.getStartState()
+    # flag = False  # Boolean Flag used to define whether the goal state has been found
+    # final_state = None
+    #
+    # # Item in fringe should have the form (STATE, COST) - PRIORITY
+    # # STATE -- Current State
+    # # COST -- The total actual path cost from start state to this state
+    # # PRIORITY -- Estimate cost from this state to goal state f(n) = g(n) + h(n)
+    # fringe.push((start_state, 0), 0)
+    # parent_map[start_state] = None
+    # visited_state[start_state] = True
+    #
+    # # Tree expansion process
+    # while not fringe.isEmpty():
+    #     current_state, cost_so_far = fringe.pop()
+    #     visited_state[current_state] = True
+    #     if problem.isGoalState(current_state):
+    #         final_state = current_state
+    #         flag = True
+    #         break
+    #
+    #     successor_list = problem.getSuccessors(current_state)  # generate legal successor states
+    #     for state, direction, cost in successor_list:
+    #         if visited_state.has_key(state):
+    #             continue
+    #         else:
+    #             parent_map[state] = (current_state, direction)
+    #             fringe.push((state, 0), 0)
+    #
+    # # Action list construction
+    # return constructActionList(parent_map, final_state)
+    util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    fringe = util.Queue()  # Queue as fringe in BFS
-    return genericSearch(problem, WrappedFringe(fringe), False)
+    # # Variables initialization
+    # fringe = WrappedFringe(util.Queue())  # Queue as fringe in BFS
+    # parent_map = {}  # HashMap stores the parent information
+    # visited_state = {}  # HashMap stores the visited position
+    # start_state = problem.getStartState()
+    # flag = False  # Boolean Flag used to define whether the goal state has been found
+    # final_state = None
+    #
+    # # Item in fringe should have the form (STATE, COST) - PRIORITY
+    # # STATE -- Current State
+    # # COST -- The total actual path cost from start state to this state
+    # # PRIORITY -- Estimate cost from this state to goal state f(n) = g(n) + h(n)
+    # fringe.push((start_state, 0), 0)
+    # parent_map[start_state] = None
+    # visited_state[start_state] = True
+    #
+    # # Tree expansion process
+    # while not fringe.isEmpty():
+    #     current_state, cost_so_far = fringe.pop()
+    #     successor_list = problem.getSuccessors(current_state)
+    #
+    #     for state, direction, cost in successor_list:
+    #         if visited_state.has_key(state):
+    #             continue
+    #         else:
+    #             parent_map[state] = (current_state, direction)
+    #             visited_state[state] = True
+    #             if problem.isGoalState(state):
+    #                 final_state = state
+    #                 flag = True
+    #             fringe.push((state, cost + cost_so_far), 0)
+    #     if flag:
+    #         break
+    #
+    # # Action list construction
+    # return constructActionList(parent_map, final_state)
+    util.raiseNotDefined()
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    fringe = util.PriorityQueue()  # PriorityQueue as fringe in UCS
-    return genericSearch(problem, WrappedFringe(fringe), True)
+    # Variables initialization
+    fringe = WrappedFringe(util.PriorityQueue()) # PriorityQueue as fringe in UCS
+    parent_map = {}  # HashMap stores the parent information
+    visited_state = {}  # HashMap stores the visited position
+    start_state = problem.getStartState()
+    final_state = None
+
+    # Item in fringe should have the form (STATE, COST) - PRIORITY
+    # STATE -- Current State
+    # COST -- The total actual path cost from start state to this state
+    # PRIORITY -- Estimate cost from this state to goal state f(n) = g(n) + h(n)
+    fringe.push((start_state, 0), 0)
+    parent_map[start_state] = None
+    # visited_state[(start_state, 0)] = True
+
+    # Tree expansion process
+    while not fringe.isEmpty():
+        current_state, cost_so_far = fringe.pop()
+        print(current_state)
+
+        if visited_state.has_key(current_state):
+            continue  # This state has benn visited with smaller path cost
+        else:
+            visited_state[current_state] = True
+            if problem.isGoalState(current_state):
+                final_state = current_state
+                break
+
+            successor_list = problem.getSuccessors(current_state)  # generate legal successor states
+            for state, direction, cost in successor_list:
+                parent_map[state] = (current_state, direction)
+                fringe.push((state, cost + cost_so_far), cost + cost_so_far)
+
+    # Action list construction
+    print final_state
+    return []
+    # return constructActionList(parent_map, final_state)
+    # util.raiseNotDefined()
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    fringe = util.PriorityQueue() # PriorityQueue as fringe and consider heuristic function in A*
-    return genericSearch(problem, WrappedFringe(fringe), True, heuristic)
+    # fringe = util.PriorityQueue() # PriorityQueue as fringe and consider heuristic function in A*
+    # return genericSearch(problem, WrappedFringe(fringe), True, heuristic)
+    util.raiseNotDefined()
 
 
 # Abbreviations
