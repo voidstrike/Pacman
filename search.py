@@ -61,6 +61,7 @@ class SearchProblem:
         """
         util.raiseNotDefined()
 
+
 class WrappedFringe:
     # Wrapper class for different fringe implementations
     def __init__(self, inner):
@@ -82,6 +83,27 @@ class WrappedFringe:
     def isEmpty(self):
         return self.inner.isEmpty()
 
+
+class SearchController:
+    def __init__(self, wrappedFringe, problem):
+        self.fringe = wrappedFringe  # fringe implementation for different search algorithm
+        self.parent_map = {}  # HashMap stores the parent state information ?
+        self.visited_state = {}  # HashMap stores visited state in this problem
+        self.start_state = problem.getStartState() # Generate the start state of this problem
+        self.final_state = None
+
+    def checkVisited(self, tar):
+        return tar in self.visited_state
+
+    def visit(self, tar):
+        self.visited_state[tar] = True
+
+    def addParent(self, child, parent, direction):
+        self.parent_map[child] = (parent, direction)
+
+    def getParent(self, state):
+        return self.parent_map[state]
+
 def tinyMazeSearch(problem):
     """
     Returns a sequence of moves that solves tinyMaze.  For any other maze, the
@@ -99,199 +121,71 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
-def constructActionList(parent_map, final_state):
-    action_list = []  # initialize the action list
-    while True:
-        if parent_map[final_state] is not None:
-            print parent_map[final_state]
-            action_list.append(parent_map[final_state][1])  # Append action in reverse order
-            final_state = parent_map[final_state][0]  # Update state according to its parent
-        else:
-            break
-    return list(reversed(action_list))
-
-def genericSearch(problem, fringe, after_check_flag, heuristic=nullHeuristic):
+def genericSearch(problem, fringe, heuristic=nullHeuristic):
     # Variables initialization
-    parent_map = {}  # HashMap stores the parent information
-    visited_state = {}  # HashMap stores the visited position
-    start_state = problem.getStartState()
-    flag = False # Boolean Flag used to define whether the goal state has been found
-    final_state = None
+    sc = SearchController(fringe, problem)
 
-    # Item in fringe should have the form (STATE, COST) - PRIORITY
-    # STATE -- Current State
-    # COST -- The total actual path cost from start state to this state
-    # PRIORITY -- Estimate cost from this state to goal state f(n) = g(n) + h(n)
-    fringe.push((start_state, 0), heuristic(start_state, problem))
-    parent_map[start_state] = None
-    visited_state[start_state] = True
+    # Item in fringe should have the form (STATE, DIR, PARENT, COST) - PRIORITY
+    #   STATE -- Current State
+    #   DIR -- Direction from PARENT
+    #   PARENT -- THe actual parent state of STATE
+    #   COST -- The total actual path cost from start state to this state
+    #   PRIORITY -- Estimate cost from this state to goal state f(n) = g(n) + h(n)
+    sc.fringe.push((sc.start_state, None, None, 0), 0)
+    sc.addParent(sc.start_state, None, None)
 
-    # Tree expansion process
-    if after_check_flag:  # The algorithm is required to perform goal test during tree expansion
-        while not fringe.isEmpty():
-            current_state, cost_so_far = fringe.pop()
-            visited_state[current_state] = True
-            if problem.isGoalState(current_state):
-                final_state = current_state
-                flag = True
-                break
+    # Tree expansion
+    while not sc.fringe.isEmpty():
+        current_state, dir_from_parent, parent_state, cost_so_far = sc.fringe.pop()
 
-            successor_list = problem.getSuccessors(current_state) # generate legal successor states
-            for state, direction, cost in successor_list:
-                if visited_state.has_key(state):
-                    continue
-                else:
-                    parent_map[state] = (current_state, direction)
-                    fringe.push((state, cost + cost_so_far), cost + cost_so_far + heuristic(state, problem))
-
-    else:  # The algorithm is required to perform goal test while first encounter a state
-        while not fringe.isEmpty():
-            current_state, cost_so_far = fringe.pop()
-            successor_list = problem.getSuccessors(current_state)
-
-            for state, direction, cost in successor_list:
-                if visited_state.has_key(state):
-                    continue
-                else:
-                    parent_map[state] = (current_state, direction)
-                    visited_state[state] = True
-                    if problem.isGoalState(state):
-                        final_state = state
-                        flag = True
-                        break
-                    fringe.push((state, cost + cost_so_far), cost + cost_so_far + heuristic(state, problem))
-
-            if flag:
-                break
-
-    # Action list construction
-    return constructActionList(parent_map, final_state)
-
-def depthFirstSearch(problem):
-    """ Search the deepest nodes in the search tree first. """
-    # # Variables initialization
-    # fringe = WrappedFringe(util.Stack())
-    # parent_map = {}  # HashMap stores the parent information
-    # visited_state = {}  # HashMap stores the visited position
-    # start_state = problem.getStartState()
-    # flag = False  # Boolean Flag used to define whether the goal state has been found
-    # final_state = None
-    #
-    # # Item in fringe should have the form (STATE, COST) - PRIORITY
-    # # STATE -- Current State
-    # # COST -- The total actual path cost from start state to this state
-    # # PRIORITY -- Estimate cost from this state to goal state f(n) = g(n) + h(n)
-    # fringe.push((start_state, 0), 0)
-    # parent_map[start_state] = None
-    # visited_state[start_state] = True
-    #
-    # # Tree expansion process
-    # while not fringe.isEmpty():
-    #     current_state, cost_so_far = fringe.pop()
-    #     visited_state[current_state] = True
-    #     if problem.isGoalState(current_state):
-    #         final_state = current_state
-    #         flag = True
-    #         break
-    #
-    #     successor_list = problem.getSuccessors(current_state)  # generate legal successor states
-    #     for state, direction, cost in successor_list:
-    #         if visited_state.has_key(state):
-    #             continue
-    #         else:
-    #             parent_map[state] = (current_state, direction)
-    #             fringe.push((state, 0), 0)
-    #
-    # # Action list construction
-    # return constructActionList(parent_map, final_state)
-    util.raiseNotDefined()
-
-def breadthFirstSearch(problem):
-    """Search the shallowest nodes in the search tree first."""
-    # # Variables initialization
-    # fringe = WrappedFringe(util.Queue())  # Queue as fringe in BFS
-    # parent_map = {}  # HashMap stores the parent information
-    # visited_state = {}  # HashMap stores the visited position
-    # start_state = problem.getStartState()
-    # flag = False  # Boolean Flag used to define whether the goal state has been found
-    # final_state = None
-    #
-    # # Item in fringe should have the form (STATE, COST) - PRIORITY
-    # # STATE -- Current State
-    # # COST -- The total actual path cost from start state to this state
-    # # PRIORITY -- Estimate cost from this state to goal state f(n) = g(n) + h(n)
-    # fringe.push((start_state, 0), 0)
-    # parent_map[start_state] = None
-    # visited_state[start_state] = True
-    #
-    # # Tree expansion process
-    # while not fringe.isEmpty():
-    #     current_state, cost_so_far = fringe.pop()
-    #     successor_list = problem.getSuccessors(current_state)
-    #
-    #     for state, direction, cost in successor_list:
-    #         if visited_state.has_key(state):
-    #             continue
-    #         else:
-    #             parent_map[state] = (current_state, direction)
-    #             visited_state[state] = True
-    #             if problem.isGoalState(state):
-    #                 final_state = state
-    #                 flag = True
-    #             fringe.push((state, cost + cost_so_far), 0)
-    #     if flag:
-    #         break
-    #
-    # # Action list construction
-    # return constructActionList(parent_map, final_state)
-    util.raiseNotDefined()
-
-def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
-    # Variables initialization
-    fringe = WrappedFringe(util.PriorityQueue()) # PriorityQueue as fringe in UCS
-    parent_map = {}  # HashMap stores the parent information
-    visited_state = {}  # HashMap stores the visited position
-    start_state = problem.getStartState()
-    final_state = None
-
-    # Item in fringe should have the form (STATE, COST) - PRIORITY
-    # STATE -- Current State
-    # COST -- The total actual path cost from start state to this state
-    # PRIORITY -- Estimate cost from this state to goal state f(n) = g(n) + h(n)
-    fringe.push((start_state, 0), 0)
-    parent_map[start_state] = None
-    # visited_state[(start_state, 0)] = True
-
-    # Tree expansion process
-    while not fringe.isEmpty():
-        current_state, cost_so_far = fringe.pop()
-        print(current_state)
-
-        if visited_state.has_key(current_state):
-            continue  # This state has benn visited with smaller path cost
+        if sc.checkVisited(current_state):
+            continue  # This state has been visited before
         else:
-            visited_state[current_state] = True
+            sc.visit(current_state)
+            sc.addParent(current_state, parent_state, dir_from_parent)
             if problem.isGoalState(current_state):
-                final_state = current_state
+                sc.final_state = current_state
                 break
 
             successor_list = problem.getSuccessors(current_state)  # generate legal successor states
             for state, direction, cost in successor_list:
-                parent_map[state] = (current_state, direction)
-                fringe.push((state, cost + cost_so_far), cost + cost_so_far)
+                sc.fringe.push((state, direction, current_state, cost + cost_so_far),
+                               cost + cost_so_far + heuristic(state, problem))
 
     # Action list construction
-    print final_state
-    return []
-    # return constructActionList(parent_map, final_state)
-    # util.raiseNotDefined()
+    action_list = []  # initialize the action list
+    while True:
+        if sc.getParent(sc.final_state)[0] is not None:
+            action_list.append(sc.getParent(sc.final_state)[1])  # Append action in reverse order
+            sc.final_state = sc.getParent(sc.final_state)[0]  # Update state according to its parent
+        else:
+            break
+    return list(reversed(action_list))
+
+
+def depthFirstSearch(problem):
+    """ Search the deepest nodes in the search tree first. """
+    # Variables initialization
+    fringe = WrappedFringe(util.Stack())
+    return genericSearch(problem, fringe)
+
+
+def breadthFirstSearch(problem):
+    """Search the shallowest nodes in the search tree first."""
+    fringe = WrappedFringe(util.Queue())
+    return genericSearch(problem, fringe)
+
+
+def uniformCostSearch(problem):
+    """Search the node of least total cost first."""
+    fringe = WrappedFringe(util.PriorityQueue())
+    return genericSearch(problem, fringe)
+
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    # fringe = util.PriorityQueue() # PriorityQueue as fringe and consider heuristic function in A*
-    # return genericSearch(problem, WrappedFringe(fringe), True, heuristic)
-    util.raiseNotDefined()
+    fringe = WrappedFringe(util.PriorityQueue())
+    return genericSearch(problem, fringe, heuristic)
 
 
 # Abbreviations
