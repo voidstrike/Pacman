@@ -94,33 +94,127 @@ def depthFirstSearch(problem):
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
-    "*** YOUR CODE HERE ***"
-    print "Start:", problem.getStartState()
-    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-    print "Start's successors:", problem.getSuccessors(problem.getStartState())
+    fringe = util.Stack()  # Initialize fringe as STACK for DFS
+    parent_map = {}
+    visited_state = {}
+    flag = False
 
-    fringe = util.Stack()
-    fringe.push((problem.getStartState, None))
+    fringe.push(problem.getStartState())
+    parent_map[problem.getStartState()] = None
+    visited_state[problem.getStartState()] = True
+    final_state = None
 
     while not fringe.isEmpty():
         current_state = fringe.pop()
         successor_list = problem.getSuccessors(current_state)
 
-        for state in successor_list:
-            if problem.isGoalState(state):
+        for state, direction, cost in successor_list:
+            if not visited_state.has_key(state):
+                visited_state[state] = True
+                parent_map[state] = (current_state, direction)
+                if problem.isGoalState(state):
+                    final_state = state
+                    flag = True
+                    break
+                fringe.push(state)
+            else:
+                continue
+
+        if flag:
+            break
+
+    action_list = []  # initialize the action list
+    if flag:
+        while True:
+            if parent_map[final_state] is not None:
+                action_list.append(parent_map[final_state][1])  # Append action in reverse order
+                final_state = parent_map[final_state][0]  # Update state according to its parent
+            else:
                 break
 
-    #util.raiseNotDefined()
+    return list(reversed(action_list))
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = util.Queue()  # Initialize fringe as STACK for BFS
+    parent_map = {}
+    visited_state = {}
+    flag = False
+
+    fringe.push(problem.getStartState())
+    parent_map[problem.getStartState()] = None
+    visited_state[problem.getStartState()] = True
+    final_state = None
+
+    while not fringe.isEmpty():
+        current_state = fringe.pop()
+        successor_list = problem.getSuccessors(current_state)
+
+        for state, direction, cost in successor_list:
+            if not visited_state.has_key(state):
+                visited_state[state] = True
+                parent_map[state] = (current_state, direction)
+                if problem.isGoalState(state):
+                    final_state = state
+                    flag = True
+                    break
+                fringe.push(state)
+            else:
+                continue
+
+        if flag:
+            break
+
+    action_list = []  # initialize the action list
+    if flag:
+        while True:
+            if parent_map[final_state] is not None:
+                action_list.append(parent_map[final_state][1])  # Append action in reverse order
+                final_state = parent_map[final_state][0]  # Update state according to its parent
+            else:
+                break
+
+    return list(reversed(action_list))
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = util.PriorityQueue()  # Initialize fringe as STACK for UCS
+    parent_map = {}
+    visited_state = {}
+    flag = False
+
+    fringe.push((problem.getStartState(), 0), 0)
+    parent_map[problem.getStartState()] = None
+    visited_state[problem.getStartState()] = True
+    final_state = None
+
+    while not fringe.isEmpty():
+        current_state, cost_so_far = fringe.pop()
+        if problem.isGoalState(current_state):
+            final_state = current_state
+            flag = True
+            break
+
+        successor_list = problem.getSuccessors(current_state)
+
+        for state, direction, cost in successor_list:
+            if not visited_state.has_key(state):
+                visited_state[state] = True
+                parent_map[state] = (current_state, direction)
+                fringe.push((state, cost+cost_so_far), cost+cost_so_far)
+            else:
+                continue
+
+    action_list = []  # initialize the action list
+    if flag:
+        while True:
+            if parent_map[final_state] is not None:
+                action_list.append(parent_map[final_state][1])  # Append action in reverse order
+                final_state = parent_map[final_state][0]  # Update state according to its parent
+            else:
+                break
+
+    return list(reversed(action_list))
 
 def nullHeuristic(state, problem=None):
     """
@@ -131,8 +225,44 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = util.PriorityQueue()  # Initialize fringe as STACK for UCS
+    parent_map = {}
+    visited_state = {}
+    flag = False
+    start_state = problem.getStartState()
+
+    fringe.push((start_state, 0), heuristic(start_state, problem))
+    parent_map[start_state] = None
+    visited_state[start_state] = True
+    final_state = None
+
+    while not fringe.isEmpty():
+        current_state, cost_so_far = fringe.pop()
+        if problem.isGoalState(current_state):
+            final_state = current_state
+            flag = True
+            break
+
+        successor_list = problem.getSuccessors(current_state)
+
+        for state, direction, cost in successor_list:
+            if not visited_state.has_key(state):
+                visited_state[state] = True
+                parent_map[state] = (current_state, direction)
+                fringe.push((state, cost + cost_so_far), cost + cost_so_far + heuristic(state, problem))
+            else:
+                continue
+
+    action_list = []  # initialize the action list
+    if flag:
+        while True:
+            if parent_map[final_state] is not None:
+                action_list.append(parent_map[final_state][1])  # Append action in reverse order
+                final_state = parent_map[final_state][0]  # Update state according to its parent
+            else:
+                break
+
+    return list(reversed(action_list))
 
 
 # Abbreviations
