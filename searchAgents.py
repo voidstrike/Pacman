@@ -489,30 +489,34 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    # no-wall 0.5, wall 1 for heuristic function
     foodList = foodGrid.asList()
-    h = -1
-    for food in foodList:
-        xMin = min(position[0], food[0])
-        xMax = max(position[0], food[0])
-        yMin = min(position[1], food[1])
-        yMax = max(position[1], food[1])
-        temp = 0
-        for i in range(xMin + 1, xMax):
-            if problem.walls[i][yMin]:
-                temp += 1
-            else:
-                temp += 0.5
-        for j in range(yMin, yMax + 1):
-            if problem.walls[xMin][j]:
-                temp += 1
-            else:
-                temp += 0.5
-        if h == -1:
-            h = temp
-        else:
-            h = min(h, temp)
-    return max(h, 0)
+    visited_list = [False for food in foodList]
+    estimate = 0
+
+    # Greed algorithm, select the less distance between current_pos and unvisited corners
+    current_pos = position
+    while True:
+        tmp_flg = True
+        for flg in visited_list:
+            tmp_flg = tmp_flg and flg
+        if tmp_flg:
+            break
+
+        tmp_estimate = float('inf')
+        flag = -1
+        for i in range(len(visited_list)):
+            if not visited_list[i]:
+                dis = manhattanDistance(current_pos, foodList[i])
+                if dis < tmp_estimate:
+                    tmp_estimate = dis
+                    flag = i
+
+        estimate += tmp_estimate
+        visited_list[flag] = True  # virtually visit this corner
+        current_pos = foodList[flag]
+
+    return estimate
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
