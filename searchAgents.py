@@ -503,7 +503,7 @@ def foodHeuristic(state, problem):
                 temp += 1
             else:
                 temp += 0.5
-        for j in range(yMin + 1, yMax):
+        for j in range(yMin, yMax + 1):
             if problem.walls[xMin][j]:
                 temp += 1
             else:
