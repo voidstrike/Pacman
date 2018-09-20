@@ -380,7 +380,7 @@ def cornersHeuristic(state, problem):
     # Greed algorithm, select the less distance between current_pos and unvisited corners
     current_pos = (x, y)
     while True:
-        if visited_list[0] and visited_list[1] and visited_list[2] and visited_list[4]:
+        if visited_list[0] and visited_list[1] and visited_list[2] and visited_list[3]:
             break
 
         tmp_estimate = float('inf')
