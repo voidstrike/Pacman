@@ -512,7 +512,7 @@ def foodHeuristic(state, problem):
             h = temp
         else:
             h = min(h, temp)
-    return h
+    return max(h, 0)
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
