@@ -490,30 +490,61 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     foodList = foodGrid.asList()
-    visited_list = [False for food in foodList]
-    estimate = 0
 
-    # Greed algorithm, select the less distance between current_pos and unvisited corners
-    current_pos = position
+    if len(foodList) == 0:
+        return 0  # No food exists, goal state
+
+    if 'global_matrix' in problem.heuristicInfo:
+        pass
+    else:
+        # Build global distance matrix from beginning state
+        problem.heuristicInfo['global_matrix'] = {}
+        original_dots = problem.start[1].asList()
+        for eachFood in original_dots:
+            if eachFood not in problem.heuristicInfo['global_matrix']:
+                problem.heuristicInfo['global_matrix'][eachFood] = {}
+            for otherFood in original_dots:
+                problem.heuristicInfo['global_matrix'][eachFood][otherFood] = \
+                    mazeDistance(eachFood, otherFood, problem.startingGameState)
+
+    # Visited_map used to store the visited "position" (include pacman position and food dots)
+    visited_map = {position: True}
+    for food in foodList:
+        visited_map[food] = False
+
+    # Build MST using priority queue
+    cost_pq = util.PriorityQueue()
+
+    # Pacman position as the root -- prevent inconsistent
+    first_food = None
+    first_cost = float('inf')
+    for food in foodList:
+        tmp_cost = mazeDistance(position, food, problem.startingGameState)
+        if tmp_cost < first_cost:
+            first_cost = tmp_cost
+            first_food = food
+    cost_pq.push((position, first_food, first_cost), first_cost)
+
+    estimate = 0
     while True:
-        tmp_flg = True
-        for flg in visited_list:
-            tmp_flg = tmp_flg and flg
-        if tmp_flg:
+        # Basic MST build process - Prim
+        tmp_flag = True
+        for eachKey in visited_map:
+            tmp_flag = tmp_flag and visited_map[eachKey]
+
+        if tmp_flag:
             break
 
-        tmp_estimate = float('inf')
-        flag = -1
-        for i in range(len(visited_list)):
-            if not visited_list[i]:
-                dis = manhattanDistance(current_pos, foodList[i])
-                if dis < tmp_estimate:
-                    tmp_estimate = dis
-                    flag = i
+        _, f2, cost = cost_pq.pop()
 
-        estimate += tmp_estimate
-        visited_list[flag] = True  # virtually visit this corner
-        current_pos = foodList[flag]
+        if f2 in visited_map and visited_map[f2]:
+            continue
+        elif f2 in visited_map:
+            visited_map[f2] = True
+            for eachFood in problem.heuristicInfo['global_matrix'][f2]:
+                cost_pq.push((f2, eachFood, problem.heuristicInfo['global_matrix'][f2][eachFood]),
+                             problem.heuristicInfo['global_matrix'][f2][eachFood])
+            estimate += cost
 
     return estimate
 
